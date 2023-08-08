@@ -4,7 +4,7 @@ const User = require('../models/user');
 const validRole = async (role = '') => {
   const roleExists = await Role.findOne({ role });
   if (!roleExists) {
-    throw new Error(`Role: ${role} is not valid and doesn't exists in the DB`);
+    throw new Error(`Role: ${role} is not valid and doesn't exist in the DB`);
   }
 }
 
@@ -14,7 +14,6 @@ const emailExists = async (email = '') => {
     throw new Error('The email already exists');
   }
 }
-
 
 const userById = async (id = '') => {
   const userDB = await User.findById(id);
