@@ -1,31 +1,59 @@
 const { response, request } = require('express');
+const bcryptjs = require('bcryptjs');
+const User = require('../models/user');
 
-const getUsers = (req = request, res = response) => {
-  const { name, lastname = 'noLastName' } = req.query;
+const getUsers = async (req = request, res = response) => {
+
+  const { limit = 5, from = 0 } = req.query;
+  const query = { status: true };
+  // const users = await User.find(query).skip(from).limit(limit);
+  // const total = await User.find(query).countDocuments();
+
+  const [total, users] = await Promise.all([
+    User.find(query).countDocuments(),
+    User.find(query).skip(from).limit(limit)
+  ]);
+
   res.json({
     ok: true,
-    msg: 'GET Controller',
-    name,
-    lastname
+    total,
+    users
   });
+
 }
 
-const postUser = (req, res) => {
-  const body = req.body;
+const postUser = async (req, res) => {
+
+  const { name, email, password, role } = req.body;
+  const user = new User({ name, email, password, role });
+  // Crypt password
+  const salt = bcryptjs.genSaltSync();
+  user.password = bcryptjs.hashSync(password, salt);
+  // Save in dB
+  await user.save();
   res.status(201).json({
     ok: true,
-    msg: 'POST',
-    body
+    user
   });
+
 }
 
-const putUser = (req, res) => {
+const putUser = async (req, res) => {
+
   const { id } = req.params;
-  res.status(500).json({
+  const { _id, password, google, email, ...info } = req.body;
+
+  if (password) {
+    const salt = bcryptjs.genSaltSync();
+    info.password = bcryptjs.hashSync(password, salt);
+  }
+
+  const user = await User.findByIdAndUpdate(id, info, { new: true });
+  res.json({
     ok: true,
-    msg: 'PUT',
-    id
+    user
   });
+
 }
 
 const patchUser = (req, res) => {
@@ -35,11 +63,17 @@ const patchUser = (req, res) => {
   });
 }
 
-const deleteUser = (req, res) => {
+const deleteUser = async (req, res) => {
+
+  const { id } = req.params;
+  // const userDB = await User.findByIdAndDelete(id);
+  const userDB = await User.findByIdAndUpdate(id, { status: false }, { new: true });
+
   res.json({
     ok: true,
-    msg: 'DELETE'
+    userDB
   });
+
 }
 
 
