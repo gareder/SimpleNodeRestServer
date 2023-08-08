@@ -43,7 +43,6 @@ const roleValidator = (...roles) => {
 
   }
 
-
 }
 
 module.exports = {
