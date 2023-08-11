@@ -33,7 +33,7 @@ router.patch('/', patchUser);
 router.delete('/:id', [
   jwtValidator,
   // adminRole,
-  roleValidator('ADMIN_ROLE', 'SUPER_ROLE'),
+  roleValidator('ADMIN_ROLE', 'SALES_ROLE'),
   check('id', 'ID is invalid').isMongoId(),
   check('id').custom(userById),
   fieldValidator

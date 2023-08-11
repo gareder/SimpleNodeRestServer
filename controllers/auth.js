@@ -2,6 +2,7 @@ const { response, request } = require('express');
 const bcryptjs = require('bcryptjs');
 const User = require('../models/user');
 const { generateJWT } = require('../helpers/generate-jwt');
+const { googleVerify } = require('../helpers/google-verify');
 
 
 const login = async (req = request, res = response) => {
@@ -40,6 +41,7 @@ const login = async (req = request, res = response) => {
     const token = await generateJWT(user.id);
 
     res.json({
+      ok: true,
       user,
       token
     });
@@ -53,14 +55,61 @@ const login = async (req = request, res = response) => {
     });
   }
 
-  res.json({
-    ok: true,
-    msg: 'Login'
-  });
+  // res.json({
+  //   ok: true,
+  //   msg: 'Login'
+  // });
+
+}
+
+const googleSignIn = async (req = request, res = response) => {
+
+  const { id_token } = req.body;
+
+  try {
+
+    const { email, name, img } = await googleVerify(id_token);
+
+    let user = await User.findOne({ email });
+    console.log(user);
+    if (!user) {
+      const data = {
+        name,
+        email,
+        password: ':',
+        img,
+        google: true
+      };
+      user = new User(data);
+      await user.save();
+    }
+
+    if (!user.status) {
+      return res.status(401).json({
+        ok: true,
+        msg: 'Inactive/Blocked used.'
+      });
+    }
+
+    res.json({
+      ok: true,
+      user
+    });
+
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      ok: false,
+      msg: 'Server error'
+    });
+  }
+
+
 
 }
 
 
 module.exports = {
-  login
+  login,
+  googleSignIn
 };

@@ -6,13 +6,13 @@ const UserSchema = Schema({
   email: { type: String, required: [true, 'Email is required'], unique: true },
   password: { type: String, required: [true, 'Password is required'], },
   img: { type: String, },
-  role: { type: String, required: true, emun: ['ADMIN_ROLE', 'USER_ROLE'] },
+  role: { type: String, required: true, default: 'USER_ROLE', emun: ['ADMIN_ROLE', 'USER_ROLE'] },
   status: { type: Boolean, default: true },
   google: { type: Boolean, default: false },
 
 });
 
-UserSchema.methods.toJSON = function() {
+UserSchema.methods.toJSON = function () {
   const { password, __v, _id, ...user } = this.toObject();
   user.uid = _id;
   return user;

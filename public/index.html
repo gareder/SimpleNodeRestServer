@@ -3,40 +3,47 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>Google Sign In</title>
+  <title>Google Sign-in</title>
 </head>
 
 <body>
-  <h1>Google Sign In</h1>
+  <h1>Google Sign-in</h1>
   <hr>
-  <div id="g_id_onload" data-client_id="864058560893-gc61mu0385gba48u0o0vdaslvmutk997.apps.googleusercontent.com" data-callback="handleCredentialResponse">
+  <div id="g_id_onload" data-client_id="965834176799-it6n74tpekh6otdq7rf3t9h71cjugc1u.apps.googleusercontent.com" data-callback="handleCredentialResponse" data-auto_prompt="false">
   </div>
-  <div class="g_id_signin" data-type="standard"></div>
+  <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="sign_in_with" data-shape="rectangular" data-logo_alignment="left"></div><br>
+  <button id="g_id_signout">Sign Out</button>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script>
+    function handleCredentialResponse(response) {
+      // Google token
+      // console.log(response.credential);
+      const body = { id_token: response.credential };
 
-  <a href="#" onclick="signOut();">Sign out</a>
+      fetch('http://localhost:8080/api/auth/google', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      })
+        .then((resp) => resp.json()).then(resp => {
+          console.log(resp);
+          localStorage.setItem('gmail', resp.user.email);
+        }).catch(console.warn)
+
+    }
+
+    const button = document.getElementById('g_id_signout');
+    button.onclick = () => {
+      google.accounts.id.disableAutoSelect();
+      google.accounts.id.revoke(localStorage.getItem('gmail'), done => {
+        localStorage.clear();
+        location.reload();
+      });
+    }
+  </script>
 </body>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
-
-<script>
-  window.onload = function () {
-    google.accounts.id.initialize({
-      client_id: '864058560893-gc61mu0385gba48u0o0vdaslvmutk997.apps.googleusercontent.com',
-      callback: handleCredentialResponse
-    });
-    google.accounts.id.prompt();
-  };
-</script>
-
-<script>
-  function signOut() {
-    var auth2 = gapi.auth2.getAuthInstance();
-    auth2.signOut().then(function () {
-      console.log('User signed out.');
-    });
-  }
-</script>
 
 </html>
